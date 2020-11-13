@@ -1,8 +1,11 @@
 version: "3.7"
 services:
   youtube-dl:
-    image: qmcgaw/youtube-dl-alpine
+    image: hoanghiepitvnn/youtube-dl-aio
     container_name: youtube-dl
+    build:
+      context: .
+      dockerfile: Dockerfile
     network_mode: bridge
     volumes:
       - ./downloads:/downloads

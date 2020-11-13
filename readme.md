@@ -2,21 +2,6 @@
 
 *Download with [**youtube-dl**](https://github.com/rg3/youtube-dl) using command line arguments or configuration files*
 
-[![Docker Youtube-DL](https://github.com/qdm12/youtube-dl-docker/raw/master/title.png)](https://hub.docker.com/r/qmcgaw/youtube-dl-alpine/)
-
-[![Build status](https://github.com/qdm12/ddns-updater/workflows/Buildx%20latest/badge.svg)](https://github.com/qdm12/ddns-updater/actions?query=workflow%3A%22Buildx+latest%22)
-[![Docker Pulls](https://img.shields.io/docker/pulls/qmcgaw/youtube-dl-alpine.svg)](https://hub.docker.com/r/qmcgaw/youtube-dl-alpine)
-[![Docker Stars](https://img.shields.io/docker/stars/qmcgaw/youtube-dl-alpine.svg)](https://hub.docker.com/r/qmcgaw/youtube-dl-alpine)
-[![Docker Automated](https://img.shields.io/docker/automated/qmcgaw/youtube-dl-alpine.svg)](https://hub.docker.com/r/qmcgaw/youtube-dl-alpine)
-[![Image size](https://images.microbadger.com/badges/image/qmcgaw/youtube-dl-alpine.svg)](https://microbadger.com/images/qmcgaw/youtube-dl-alpine)
-[![Image version](https://images.microbadger.com/badges/version/qmcgaw/youtube-dl-alpine.svg)](https://microbadger.com/images/qmcgaw/youtube-dl-alpine)
-
-[![GitHub last commit](https://img.shields.io/github/last-commit/qdm12/youtube-dl-docker.svg)](https://github.com/qdm12/youtube-dl-docker/issues)
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/y/qdm12/youtube-dl-docker.svg)](https://github.com/qdm12/youtube-dl-docker/issues)
-[![GitHub issues](https://img.shields.io/github/issues/qdm12/youtube-dl-docker.svg)](https://github.com/qdm12/youtube-dl-docker/issues)
-
-[![Donate PayPal](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/qmcgaw)
-
 ## Features
 
 - Works with command line arguments to *youtube-dl*
@@ -30,28 +15,65 @@
 - The container updates youtube-dl at launch if `-e AUTOUPDATE=yes`
 - A log file of youtube-dl execution is saved at `downloads/log.txt` if `-e LOG=yes`
 - Docker healthcheck downloading `https://duckduckgo.com` with `wget` every 10 minutes
-- The Docker Hub image is updated automatically every 3 days, so simply update your image with `docker pull qmcgaw\youtube-dl-alpine`
+- The Docker Hub image is updated automatically every 3 days, so simply update your image with `docker pull hoanghiepitvnn/youtube-dl-aio`
 - You can receive a notification on your Android device through Gotify when the *youtube-dl* has finished
+
+## Build and push to Docker Hub
+
+```
+docker-compose up --build
+docker push hoanghiepitvnn/youtube-dl-aio
+```
 
 ## Setup
 
-1. Run the container with
+**1. Add alias commands below to ~/.bashrc or ~/.zshrc**
 
-    ```bash
-    docker run -d -v $(pwd)/yourdir:/downloads qmcgaw/youtube-dl-alpine \
-    https://www.youtube.com/watch?v=HagVnWAeGcM \
-    -o "/downloads/%(title)s.%(ext)s"
-    ```
+- Change your folder downloads at `YOUTUBE_DOWNLOAD_PATH`
 
-    or use [docker-compose.yml](https://github.com/qdm12/youtube-dl-docker/blob/master/docker-compose.yml) with
+```
+export YOUTUBE_DOWNLOAD_PATH=/Users/hiepdinh/Data/Youtube
 
-    ```bash
-    docker-compose up -d
-    ```
+alias yt_files="open $YOUTUBE_DOWNLOAD_PATH"
+alias yt_log="tail -f $YOUTUBE_DOWNLOAD_PATH/log.txt"
+alias ytdl_base="docker run --rm --name=youtube-dl -e AUTOUPDATE=yes -v $YOUTUBE_DOWNLOAD_PATH:/downloads:rw hoanghiepitvnn/youtube-dl-aio"
+alias yt_audio="ytdl_base -x --audio-format mp3 --audio-quality 0 --ignore-errors"
+alias yt_video="ytdl_base -f 'bestvideo[height>=1000+height<1100]+bestaudio/bestvideo[ext=mp4]' --recode-video mp4 --postprocessor-args '-vcodec copy'"
+alias yt_video2k="ytdl_base -f 'bestvideo[height>=1400+height<1500]+bestaudio/bestvideo[ext=mp4]' --recode-video mp4 --postprocessor-args '-vcodec copy'"
 
-1. See the [youtube-dl command line options](https://github.com/rg3/youtube-dl/blob/master/README.md#options)
-1. If you encounter permission issues, either `chown 1000 yourdir && chmod 700 yourdir` or run the container
-with `--user=1001` where `1001` is the user ID owning *yourdir*
+alias yt="yt_audio -o '/downloads/%(title)s.%(ext)s'"
+alias ytl="yt_audio -o '/downloads/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'"
+
+alias ytv="yt_video -o '/downloads/%(title)s.%(ext)s'"
+alias ytv2k="yt_video2k -o '/downloads/%(title)s.%(ext)s'"
+alias ytvl="yt_video -o '/downloads/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'"
+alias ytv2kl="yt_video2k -o '/downloads/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'"
+```
+
+**2. Usage**
+
+| Command | Description |
+| --- | --- |
+| yt_files | Open folder contain files downloaded |
+| yt_log | Tail container log |
+| yt | Download audio at best quality. |
+| ytl | Download playlist audio at best quality. |
+| ytv | Download video max resolution at 1080 quality |
+| ytvl | Download playlist video max resolution at 1080 quality |
+| ytv2k | Download video max resolution at 2K quality |
+| ytvl2k | Download playlist video max resolution at 2K quality |
+
+*Example:*
+```
+yt https://www.youtube.com/watch?v=Ex8IeflzftY
+ytl https://www.youtube.com/watch?v=d--UOXdbtuE&list=PLbnOcTug_qTzM9-08LJddoirbpYX18zq0
+
+ytv https://www.youtube.com/watch?v=Ex8IeflzftY
+ytvl https://www.youtube.com/watch?v=d--UOXdbtuE&list=PLbnOcTug_qTzM9-08LJddoirbpYX18zq0
+
+ytv2k https://www.youtube.com/watch?v=Ex8IeflzftY
+ytvl2k https://www.youtube.com/watch?v=d--UOXdbtuE&list=PLbnOcTug_qTzM9-08LJddoirbpYX18zq0
+```
 
 ### Environment variables
 
@@ -75,8 +97,3 @@ You can either:
     ```
 
 - Launch the container with a different user using `--user=$UID:$GID`
-
-## TODOs
-
-- [ ] Healthcheck to check ydl logs
-- [ ] Colors in terminal
